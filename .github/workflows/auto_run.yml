@@ -1,0 +1,26 @@
+name: Auto Run Python Script
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Har 4 ghante par chalega
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # Aapke script ke liye required version
+
+      - name: Install dependencies
+        run: |
+          pip install requests # Agar aapke paas requirements file hai
+
+      - name: Run Python script
+        run: |
+          python prem.py  # Yahan apne script ka naam daalein
