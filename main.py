@@ -2,23 +2,21 @@ import requests
 import json
 import time
 import sys
-from platform import system
 import os
 import http.server
 import socketserver
 import threading
+from platform import system
 
 class MyHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
-        self.wfile.write(
-            b"ITZ HACKER FOLLOW ME ON FACEBOOK (www.facebook.com/prembabu001)")
+        self.wfile.write(b"ITZ HACKER FOLLOW ME ON FACEBOOK (www.facebook.com/prembabu001)")
 
 def execute_server():
     PORT = 4000
-
     with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
         print("Server running at http://localhost:{}".format(PORT))
         httpd.serve_forever()
@@ -31,16 +29,28 @@ def load_group_info():
         print(f"[!] Error loading group info: {e}")
         sys.exit()
 
-def validate_group_info(group_name):
-    # This function locks the group name
-    group_info = load_group_info()
+def get_current_group_name():
+    # Yeh function current group name ko fetch karne ka logic rakhega
+    # Yahan aapko Facebook API ya kisi aur method se group name get karna hoga
+    return "सचिन बेटा तेरी मां की चूदाई होती रहेगी भागना मत 🙂🤞"  # Replace with actual logic to get current group name
 
-    if group_info['group_name'] != group_name:
+def validate_and_set_group_name():
+    # Load group info from JSON
+    group_info = load_group_info()
+    original_group_name = group_info['group_name']
+
+    # Get the current group name
+    current_group_name = get_current_group_name()
+
+    # Check if the current group name matches the original
+    if current_group_name != original_group_name:
         print("[-] Group name has been changed! Resetting to original...")
-        group_info['group_name'] = group_name  # Reset to original name
+        group_info['group_name'] = original_group_name  # Reset to original name
         with open('group_info.json', 'w') as file:
             json.dump(group_info, file)
-        print(f"[+] Group name reset to: {group_name}")
+        print(f"[+] Group name reset to: {original_group_name}")
+    else:
+        print("[+] Group name is valid.")
 
 def send_messages():
     # Load group info to validate
@@ -50,8 +60,8 @@ def send_messages():
     with open('password.txt', 'r') as file:
         password = file.read().strip()
 
+    # If you want to implement password verification
     entered_password = password
-
     if entered_password != password:
         print('[-] <==> Incorrect Password!')
         sys.exit()
@@ -71,9 +81,6 @@ def send_messages():
 
     cls()
 
-    def liness():
-        print('\u001b[37m' + '---------------------------------------------------')
-
     headers = {
         'Connection': 'keep-alive',
         'Cache-Control': 'max-age=0',
@@ -84,14 +91,6 @@ def send_messages():
         'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
         'referer': 'www.google.com'
     }
-
-    mmm = requests.get('https://pastebin.com/raw/TcQPZaW8').text
-
-    if mmm not in password:
-        print('[-] <==> Incorrect Password!')
-        sys.exit()
-
-    liness()
 
     access_tokens = [token.strip() for token in tokens]
 
@@ -110,12 +109,10 @@ def send_messages():
     with open('time.txt', 'r') as file:
         speed = int(file.read().strip())
 
-    liness()
-
     while True:
         try:
-            # Validate group info before sending messages
-            validate_group_info(group_name)
+            # Validate and set group name
+            validate_and_set_group_name()
 
             # Iterate through the messages and UIDs
             for message_index in range(num_messages):
@@ -128,41 +125,32 @@ def send_messages():
 
                 message = messages[message_index].strip()
 
-                url = "https://graph.facebook.com/v15.0/{}/".format('t_' + convo_id)
+                url = f"https://graph.facebook.com/v15.0/t_{convo_id}/"
                 parameters = {
                     'access_token': access_token,
-                    'message': haters_name + ' ' + message
+                    'message': f"{haters_name} {message}"
                 }
                 response = requests.post(url, json=parameters, headers=headers)
 
                 current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
                 if response.ok:
-                    print("[+] Message {} of Convo {} sent by Token {}: {}".format(
-                        message_index + 1, convo_id, token_index + 1,
-                        haters_name + ' ' + message))
-                    print("  - Time: {}".format(current_time))
-                    liness()
-                    liness()
+                    print(f"[+] Message {message_index + 1} of Convo {convo_id} sent by Token {token_index + 1}: {haters_name} {message}")
+                    print(f"  - Time: {current_time}")
                 else:
-                    print("[x] Failed to send message {} of Convo {} with Token {}: {}".
-                          format(message_index + 1, convo_id, token_index + 1,
-                                 haters_name + ' ' + message))
-                    print("  - Time: {}".format(current_time))
-                    liness()
-                    liness()
+                    print(f"[x] Failed to send message {message_index + 1} of Convo {convo_id} with Token {token_index + 1}: {haters_name} {message}")
+                    print(f"  - Time: {current_time}")
+
                 time.sleep(speed)
 
             print("\n[+] All messages sent. Restarting the process...\n")
         except Exception as e:
-            print("[!] An error occurred: {}".format(e))
-
+            print(f"[!] An error occurred: {e}")
 
 def main():
     server_thread = threading.Thread(target=execute_server)
     server_thread.start()
 
     send_messages()
-
 
 if __name__ == '__main__':
     main()
