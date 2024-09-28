@@ -1,10 +1,11 @@
-name: Auto Restart Python Script on Completion
+name: Auto Restart Python Script
 
 on:
+  workflow_dispatch:  # Manual trigger ke liye (optional)
   workflow_run:
-    workflows: ["Auto Restart Python Script on Completion"]
+    workflows: ["Auto Restart Python Script"]
     types:
-      - completed
+      - completed  # Jab previous run complete hoga (success ya failure), fir se chalega
 
 jobs:
   run-python:
@@ -21,8 +22,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install requests
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     - name: Run Python Script
       run: |
-        python prem.py
+        python your_script.py
