@@ -22,8 +22,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ requests ]; then pip install requests; fi
 
     - name: Run Python Script
       run: |
-        python your_script.py
+        python prem.py
