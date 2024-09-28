@@ -1,6 +1,10 @@
 name: Python Application
 
-on: [push]
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # हर 7 घंटे में चलाने के लिए
+
+  push:
 
 jobs:
   build:
