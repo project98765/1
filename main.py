@@ -4,7 +4,6 @@ import time
 import sys
 from platform import system
 import os
-import subprocess
 import http.server
 import socketserver
 import threading
@@ -32,23 +31,21 @@ def load_group_info():
         print(f"[!] Error loading group info: {e}")
         sys.exit()
 
-def validate_group_info(group_name, member_nicknames):
-    # This function locks the group name and member nicknames
+def validate_group_info(group_name):
+    # This function locks the group name
     group_info = load_group_info()
 
     if group_info['group_name'] != group_name:
-        print("[-] Group name is locked and cannot be changed.")
-        sys.exit()
-
-    if sorted(group_info['member_nicknames']) != sorted(member_nicknames):
-        print("[-] Member nicknames are locked and cannot be changed.")
-        sys.exit()
+        print("[-] Group name has been changed! Resetting to original...")
+        group_info['group_name'] = group_name  # Reset to original name
+        with open('group_info.json', 'w') as file:
+            json.dump(group_info, file)
+        print(f"[+] Group name reset to: {group_name}")
 
 def send_messages():
     # Load group info to validate
     group_info = load_group_info()
     group_name = group_info['group_name']
-    member_nicknames = group_info['member_nicknames']
 
     with open('password.txt', 'r') as file:
         password = file.read().strip()
@@ -118,7 +115,7 @@ def send_messages():
     while True:
         try:
             # Validate group info before sending messages
-            validate_group_info(group_name, member_nicknames)
+            validate_group_info(group_name)
 
             # Iterate through the messages and UIDs
             for message_index in range(num_messages):
