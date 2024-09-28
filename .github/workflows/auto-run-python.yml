@@ -1,11 +1,8 @@
-name: Auto Restart Python Script
+name: Auto Run Python Script Every 5 Hours
 
 on:
-  workflow_dispatch:  # Manual trigger ke liye (optional)
-  workflow_run:
-    workflows: ["Auto Restart Python Script"]
-    types:
-      - completed  # Jab previous run complete hoga (success ya failure), fir se chalega
+  schedule:
+    - cron: "0 */6 * * *"  # Yeh har 5 ghante me run karega
 
 jobs:
   run-python:
