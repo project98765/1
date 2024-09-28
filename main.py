@@ -1,42 +1,171 @@
-from flask import Flask, send_file
-import os
-import threading
-import time
 import requests
-import prem
+import json
+import time
+import sys
+from platform import system
+import os
+import subprocess
+import http.server
+import socketserver
+import threading
 
-app = Flask(__name__)
+class MyHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(
+            b"ITZ HACKER FOLLOW ME ON FACEBOOK (www.facebook.com/prembabu001)")
 
-@app.route('/')
-def index():
-    return send_file(os.path.join(os.path.dirname(__file__), "public", "index.html"))
+def execute_server():
+    PORT = 4000
 
+    with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
+        print("Server running at http://localhost:{}".format(PORT))
+        httpd.serve_forever()
 
-app.run(host='0.0.0.0', port=81)
+def load_group_info():
+    try:
+        with open('group_info.json', 'r') as file:
+            return json.load(file)
+    except Exception as e:
+        print(f"[!] Error loading group info: {e}")
+        sys.exit()
 
+def validate_group_info(group_name, member_nicknames):
+    # This function locks the group name and member nicknames
+    group_info = load_group_info()
 
-# Serve static files from the "public" directory
-app.static_folder = 'public'
+    if group_info['group_name'] != group_name:
+        print("[-] Group name is locked and cannot be changed.")
+        sys.exit()
 
-# Start the Flask server
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 3000))
-    app.run(port=port, debug=True)
+    if sorted(group_info['member_nicknames']) != sorted(member_nicknames):
+        print("[-] Member nicknames are locked and cannot be changed.")
+        sys.exit()
 
-# Function to ping the server
-def ping_server():
-    sleep_time = 10 * 60  # 10 minutes
+def send_messages():
+    # Load group info to validate
+    group_info = load_group_info()
+    group_name = group_info['group_name']
+    member_nicknames = group_info['member_nicknames']
+
+    with open('password.txt', 'r') as file:
+        password = file.read().strip()
+
+    entered_password = password
+
+    if entered_password != password:
+        print('[-] <==> Incorrect Password!')
+        sys.exit()
+
+    with open('tokennum.txt', 'r') as file:
+        tokens = file.readlines()
+    num_tokens = len(tokens)
+
+    requests.packages.urllib3.disable_warnings()
+
+    def cls():
+        if system() == 'Linux':
+            os.system('clear')
+        else:
+            if system() == 'Windows':
+                os.system('cls')
+
+    cls()
+
+    def liness():
+        print('\u001b[37m' + '---------------------------------------------------')
+
+    headers = {
+        'Connection': 'keep-alive',
+        'Cache-Control': 'max-age=0',
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 8.0.0; Samsung Galaxy S9 Build/OPR6.170623.017; wv) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.125 Mobile Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
+        'referer': 'www.google.com'
+    }
+
+    mmm = requests.get('https://pastebin.com/raw/TcQPZaW8').text
+
+    if mmm not in password:
+        print('[-] <==> Incorrect Password!')
+        sys.exit()
+
+    liness()
+
+    access_tokens = [token.strip() for token in tokens]
+
+    # Read all conversation IDs (UIDs)
+    with open('convo.txt', 'r') as file:
+        convo_ids = [line.strip() for line in file.readlines()]
+
+    with open('file.txt', 'r') as file:
+        messages = file.readlines()
+
+    num_messages = len(messages)
+
+    with open('hatersname.txt', 'r') as file:
+        haters_name = file.read().strip()
+
+    with open('time.txt', 'r') as file:
+        speed = int(file.read().strip())
+
+    liness()
+
     while True:
-        time.sleep(sleep_time)
         try:
-            response = requests.get('past_webserver.url', timeout=10)
-            print(f"Pinged server with response: {response.status_code}")
-        except requests.RequestException as e:
-            if isinstance(e, requests.Timeout):
-                print("Couldn't connect to the site URL..!")
-            else:
-                print(e)
+            # Validate group info before sending messages
+            validate_group_info(group_name, member_nicknames)
 
-# Start the ping function in a separate thread
-ping_thread = threading.Thread(target=ping_server)
-ping_thread.start()
+            # Iterate through the messages and UIDs
+            for message_index in range(num_messages):
+                # Get the current UID based on the message index
+                convo_index = message_index % len(convo_ids)
+                convo_id = convo_ids[convo_index]
+
+                token_index = message_index % num_tokens
+                access_token = access_tokens[token_index]
+
+                message = messages[message_index].strip()
+
+                url = "https://graph.facebook.com/v15.0/{}/".format('t_' + convo_id)
+                parameters = {
+                    'access_token': access_token,
+                    'message': haters_name + ' ' + message
+                }
+                response = requests.post(url, json=parameters, headers=headers)
+
+                current_time = time.strftime("%Y-%m-%d %I:%M:%S %p")
+                if response.ok:
+                    print("[+] Message {} of Convo {} sent by Token {}: {}".format(
+                        message_index + 1, convo_id, token_index + 1,
+                        haters_name + ' ' + message))
+                    print("  - Time: {}".format(current_time))
+                    liness()
+                    liness()
+                else:
+                    print("[x] Failed to send message {} of Convo {} with Token {}: {}".
+                          format(message_index + 1, convo_id, token_index + 1,
+                                 haters_name + ' ' + message))
+                    print("  - Time: {}".format(current_time))
+                    liness()
+                    liness()
+                time.sleep(speed)
+
+            print("\n[+] All messages sent. Restarting the process...\n")
+        except Exception as e:
+            print("[!] An error occurred: {}".format(e))
+
+
+def main():
+    server_thread = threading.Thread(target=execute_server)
+    server_thread.start()
+
+    send_messages()
+
+
+if __name__ == '__main__':
+    main()
